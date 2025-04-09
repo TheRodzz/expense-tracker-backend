@@ -50,12 +50,24 @@ export const GetExpensesQuerySchema = z.object({
     limit: z.coerce.number().int().min(1).max(500).default(100).optional(),
 });
 
+// Schema for GET /categories query parameters
+export const GetCategoriesQuerySchema = z.object({
+    skip: z.coerce.number().int().min(0).default(0).optional(),
+    limit: z.coerce.number().int().min(1).max(500).default(100).optional(),
+});
+
+// Schema for GET /payment_methods query parameters
+export const GetPaymentMethodsQuerySchema = z.object({
+    skip: z.coerce.number().int().min(0).default(0).optional(),
+    limit: z.coerce.number().int().min(1).max(500).default(100).optional(),
+});
+
 // Schema for GET /analytics/summary query parameters
 export const GetAnalyticsSummaryQuerySchema = z.object({
-     startDate: z.string().datetime({ message: "startDate is required and must be a valid ISO 8601 date" }),
-     endDate: z.string().datetime({ message: "endDate is required and must be a valid ISO 8601 date" }),
-     groupBy: z.enum(['category', 'paymentMethod', 'type'], {
-         errorMap: () => ({ message: "groupBy must be one of: 'category', 'paymentMethod', 'type'" })
-     }),
-     period: z.string().optional(), // Not strictly validated, depends on implementation
+    startDate: z.string().datetime({ message: "startDate is required and must be a valid ISO 8601 date" }),
+    endDate: z.string().datetime({ message: "endDate is required and must be a valid ISO 8601 date" }),
+    groupBy: z.enum(['category', 'paymentMethod', 'type'], {
+        errorMap: () => ({ message: "groupBy must be one of: 'category', 'paymentMethod', 'type'" })
+    }),
+    period: z.string().optional(), // Not strictly validated, depends on implementation
 });

@@ -1,7 +1,7 @@
 // app/api/categories/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClientWithAuthHeader } from '@/lib/supabase/server'; // Adjust path
-import { CategoryCreateSchema } from '@/lib/zod/schemas'; // Adjust path
+import { CategoryCreateSchema, GetCategoriesQuerySchema } from '@/lib/zod/schemas'; // Adjust path
 import { handleError, handleSuccess, handleAuthError } from '@/lib/supabase/utils'; // Adjust path
 
 export async function GET(request: NextRequest) {
@@ -9,11 +9,21 @@ export async function GET(request: NextRequest) {
         const { supabase, user } = await createSupabaseServerClientWithAuthHeader(request);
         if (!supabase || !user) return handleAuthError();
 
+        // Validate query parameters for pagination
+        const queryParams = Object.fromEntries(request.nextUrl.searchParams.entries());
+        const validationResult = GetCategoriesQuerySchema.safeParse(queryParams);
+
+        if (!validationResult.success) {
+            throw validationResult.error; // Let handleError handle the 400 response
+        }
+        const { skip, limit } = validationResult.data;
+
         // RLS ensures we only get categories for the authenticated user
         const { data, error } = await supabase
             .from('categories')
             .select('*')
-            .order('created_at', { ascending: true });
+            .order('created_at', { ascending: true })
+            .range(skip!, limit! - 1); // Apply pagination
 
         if (error) throw error;
 

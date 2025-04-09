@@ -75,7 +75,10 @@ Endpoints for managing expense categories. Require authentication.
 ### 1. List Categories
 
 *   **Endpoint:** `GET /api/categories`
-*   **Description:** Retrieves all categories belonging to the authenticated user. Categories are sorted by creation date (ascending).
+*   **Description:** Retrieves categories belonging to the authenticated user. Categories are sorted by creation date (ascending).
+*   **Query Parameters:** (Uses `GetCategoriesQuerySchema`)
+    *   `skip` (number, optional, default: 0): Number of records to skip for pagination.
+    *   `limit` (number, optional, default: 100): Maximum number of records to return (max 500).
 *   **Responses:**
     *   `200 OK`: Returns an array of category objects.
     ```json
@@ -171,6 +174,9 @@ Endpoints for managing payment methods. Require authentication.
 
 *   **Endpoint:** `GET /api/payment_methods`
 *   **Description:** Retrieves all payment methods belonging to the authenticated user. Methods are sorted by creation date (ascending).
+*   **Query Parameters:** (Uses `GetPaymentMethodsQuerySchema`)
+    *   `skip` (number, optional, default: 0): Number of records to skip for pagination.
+    *   `limit` (number, optional, default: 100): Maximum number of records to return (max 500).
 *   **Responses:**
     *   `200 OK`: Returns an array of payment method objects.
     ```json
