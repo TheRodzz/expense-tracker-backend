@@ -40,21 +40,43 @@ export const ExpenseUpdateSchema = z.object({
 export type ExpenseUpdatePayload = z.infer<typeof ExpenseUpdateSchema>;
 
 // Schema for GET /expenses query parameters
-export const GetExpensesQuerySchema = z.object({
+export const GetExpensesQuerySchema = z
+  .object({
     startDate: z.string().datetime().optional(),
     endDate: z.string().datetime().optional(),
     categoryId: UUIDSchema.optional(),
     paymentMethodId: UUIDSchema.optional(),
     type: ExpenseTypeEnum.optional(),
-    skip: z.coerce.number().int().min(0).default(0).optional(), // coerce tries to convert string to number
-    limit: z.coerce.number().int().min(1).max(500).default(100).optional(),
-});
+    skip: z
+      .preprocess((val) => val === '' ? undefined : Number(val), z.number().int().min(0))
+      .default(0),
+    limit: z
+      .preprocess((val) => val === '' ? undefined : Number(val), z.number().int().min(1).max(500))
+      .default(100),
+  })
+  .refine(
+    (data) =>
+      !data.startDate ||
+      !data.endDate ||
+      new Date(data.startDate).getTime() <= new Date(data.endDate).getTime(),
+    {
+      message: 'startDate must be less than or equal to endDate',
+      path: ['startDate'], // This sets the error path to startDate
+    }
+  );
+
+  
 
 // Schema for GET /categories query parameters
 export const GetCategoriesQuerySchema = z.object({
-    skip: z.coerce.number().int().min(0).default(0).optional(),
-    limit: z.coerce.number().int().min(1).max(500).default(100).optional(),
-});
+    skip: z
+      .preprocess((val) => val === '' ? undefined : Number(val), z.number())
+      .default(0),
+    limit: z
+      .preprocess((val) => val === '' ? undefined : Number(val), z.number())
+      .default(100),
+  });
+  
 
 // Schema for GET /payment_methods query parameters
 export const GetPaymentMethodsQuerySchema = z.object({
@@ -66,8 +88,13 @@ export const GetPaymentMethodsQuerySchema = z.object({
 export const GetAnalyticsSummaryQuerySchema = z.object({
     startDate: z.string().datetime({ message: "startDate is required and must be a valid ISO 8601 date" }),
     endDate: z.string().datetime({ message: "endDate is required and must be a valid ISO 8601 date" }),
-    groupBy: z.enum(['category', 'paymentMethod', 'type'], {
-        errorMap: () => ({ message: "groupBy must be one of: 'category', 'paymentMethod', 'type'" })
+    groupBy: z.enum(['category', 'paymentMethod'], {
+        errorMap: () => ({ message: "groupBy must be one of: 'category', 'paymentMethod'" })
     }),
-    period: z.string().optional(), // Not strictly validated, depends on implementation
+});
+
+// Schema for GET /analytics/average-spend query parameters
+export const GetAverageCategorySpendQuerySchema = z.object({
+    startDate: z.string().datetime({ message: "startDate is required and must be a valid ISO 8601 date" }),
+    endDate: z.string().datetime({ message: "endDate is required and must be a valid ISO 8601 date" }),
 });

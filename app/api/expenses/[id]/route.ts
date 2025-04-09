@@ -9,15 +9,17 @@ const IdParamSchema = z.object({ id: z.string().uuid() });
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: { id: string } }
 ) {
     try {
+        const { params } = context;
+        const { id } = await params; // Await the params promise
+
         const { supabase, user } = await createSupabaseServerClientWithAuthHeader(request);
         if (!supabase || !user) return handleAuthError();
 
-        const paramsValidation = IdParamSchema.safeParse(params);
+        const paramsValidation = IdParamSchema.safeParse({ id });
         if (!paramsValidation.success) throw paramsValidation.error;
-        const { id } = paramsValidation.data;
 
         // RLS restricts selection
         const { data, error } = await supabase
@@ -43,15 +45,16 @@ export async function GET(
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: { id: string } }
 ) {
      try {
+        const { params } = context;
+        const { id } = await params; // Await the params promise
         const { supabase, user } = await createSupabaseServerClientWithAuthHeader(request);
         if (!supabase || !user) return handleAuthError();
 
-        const paramsValidation = IdParamSchema.safeParse(params);
+        const paramsValidation = IdParamSchema.safeParse({ id });
         if (!paramsValidation.success) throw paramsValidation.error;
-        const { id } = paramsValidation.data;
 
         const json = await request.json();
         const payload = ExpenseUpdateSchema.parse(json); // Validates partial update

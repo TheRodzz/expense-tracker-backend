@@ -31,15 +31,10 @@ export async function middleware(request: NextRequest) {
     // Add user info to headers to pass it down to route handlers if needed
     // Note: Route handlers will re-create their own client anyway for RLS to work correctly,
     // so this header passing is optional unless you have other uses for user info directly.
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('X-User-Id', user.id); // Example header
+    request.headers.set('X-User-Id', user.id); // Example header
 
-    // Continue to the requested route
-    return NextResponse.next({
-        request: {
-            headers: requestHeaders,
-        },
-    });
+    // Continue to the requested route, passing the modified request
+    return NextResponse.next();
 }
 
 export const config = {

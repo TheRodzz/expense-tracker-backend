@@ -408,15 +408,49 @@ Endpoints for retrieving summarized expense data. Require authentication.
 ### 1. Get Expense Summary
 
 *   **Endpoint:** `GET /api/analytics/summary`
-*   **Description:** Retrieves summarized expense data based on specified criteria. **(Currently Not Implemented)**
+*   **Description:** Retrieves summarized expense data, grouped by either category or payment method, within a specified date range.
 *   **Query Parameters:** (Uses `GetAnalyticsSummaryQuerySchema`)
-    *   `startDate` (ISO 8601 string): Start date for the summary period.
-    *   `endDate` (ISO 8601 string): End date for the summary period.
-    *   `groupBy` ('category' | 'paymentMethod' | 'type', optional): Field to group the results by.
-    *   `period` ('day' | 'week' | 'month' | 'year', optional): Time period for aggregation (intended for use within backend logic, e.g., RPC function).
+    *   `startDate` (ISO 8601 string): Start date for the summary period (required).
+    *   `endDate` (ISO 8601 string): End date for the summary period (required).
+    *   `groupBy` ('category' | 'paymentMethod'): Field to group the results by (required).
 *   **Responses:**
-    *   `200 OK`: Returns an array of summary objects (structure depends on implementation, likely `{ label: string, value: number }`).
-    *   `400 Bad Request`: Invalid query parameters.
+    *   `200 OK`: Returns an array of summary objects, sorted by value descending.
+    ```json
+    [
+      {
+        "id": "category-uuid-or-payment-method-uuid",
+        "label": "Category Name or Payment Method Name",
+        "value": 150.75 // Total expense amount for this group
+      },
+      // ... more groups
+    ]
+    ```
+    *   `400 Bad Request`: Invalid or missing query parameters (`startDate`, `endDate`, `groupBy`).
     *   `401 Unauthorized`: Authentication failed.
     *   `500 Internal Server Error`: Database or other server error.
-    *   `501 Not Implemented`: The analytics calculation logic is not yet implemented. 
+    *   `501 Not Implemented`: The analytics calculation logic is not yet implemented.
+
+### 2. Get Average Category Spend
+
+*   **Endpoint:** `GET /api/analytics/average-spend`
+*   **Description:** Calculates the average expense amount per category within a specified date range.
+*   **Query Parameters:** (Uses `GetAverageCategorySpendQuerySchema`)
+    *   `startDate` (ISO 8601 string): Start date for the period (required).
+    *   `endDate` (ISO 8601 string): End date for the period (required).
+*   **Responses:**
+    *   `200 OK`: Returns an array of objects, each containing category details and the average spend, sorted by average amount descending.
+    ```json
+    [
+      {
+        "categoryId": "uuid",
+        "categoryName": "Category Name",
+        "totalAmount": 550.25,
+        "expenseCount": 5,
+        "averageAmount": 110.05
+      },
+      // ... more categories
+    ]
+    ```
+    *   `400 Bad Request`: Invalid or missing query parameters (`startDate`, `endDate`).
+    *   `401 Unauthorized`: Authentication failed.
+    *   `500 Internal Server Error`: Database or other server error. 

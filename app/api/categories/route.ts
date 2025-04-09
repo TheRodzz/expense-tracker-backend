@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
             throw validationResult.error; // Let handleError handle the 400 response
         }
         const { skip, limit } = validationResult.data;
-
         // RLS ensures we only get categories for the authenticated user
         const { data, error } = await supabase
             .from('categories')
@@ -41,11 +40,10 @@ export async function POST(request: NextRequest) {
 
         const json = await request.json();
         const payload = CategoryCreateSchema.parse(json);
-
         // RLS implicitly sets user_id based on the authenticated user
         const { data, error } = await supabase
             .from('categories')
-            .insert({ name: payload.name /* user_id set by RLS/default value */ })
+            .insert({ name: payload.name, user_id: user.id })
             .select() // Return the created object
             .single(); // Expecting a single row back
 

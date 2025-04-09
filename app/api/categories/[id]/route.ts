@@ -10,15 +10,15 @@ const IdParamSchema = z.object({ id: z.string().uuid() });
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: { id: string } }
 ) {
     try {
+        const { params } = context;
+        const { id } = await params;
         const { supabase, user } = await createSupabaseServerClientWithAuthHeader(request);
         if (!supabase || !user) return handleAuthError();
-
-        const paramsValidation = IdParamSchema.safeParse(params);
+        const paramsValidation = IdParamSchema.safeParse({ id });
         if (!paramsValidation.success) throw paramsValidation.error;
-        const { id } = paramsValidation.data;
 
         const json = await request.json();
         // Validate only the 'name' field if provided
@@ -58,15 +58,16 @@ export async function PATCH(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: { id: string } }
 ) {
     try {
+        const { params } = context;
+        const { id } = await params;
         const { supabase, user } = await createSupabaseServerClientWithAuthHeader(request);
         if (!supabase || !user) return handleAuthError();
 
-        const paramsValidation = IdParamSchema.safeParse(params);
+        const paramsValidation = IdParamSchema.safeParse({ id });
         if (!paramsValidation.success) throw paramsValidation.error;
-        const { id } = paramsValidation.data;
 
         // RLS restricts deletion to the user's own category
         const { error, count } = await supabase
