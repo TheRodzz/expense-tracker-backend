@@ -449,26 +449,27 @@ Endpoints for managing expenses. Require authentication.
 
 Endpoints for retrieving summarized expense data. Require authentication.
 
-### 1. Get Expense Summary
+### 1. Get Average Category Spend
 
-*   **Endpoint:** `GET /api/analytics/summary`
-*   **Description:** Retrieves summarized expense data, grouped by either category or payment method, within a specified date range.
-*   **Query Parameters:** (Uses `GetAnalyticsSummaryQuerySchema`)
+*   **Endpoint:** `GET /api/analytics/average-spend`
+*   **Description:** Retrieves the total expense amount, count, and average spending per category within a specified date range for the authenticated user.
+*   **Query Parameters:** (Uses `GetAverageCategorySpendQuerySchema`)
     *   `startDate` (ISO 8601 string): Start date for the summary period (required).
     *   `endDate` (ISO 8601 string): End date for the summary period (required).
-    *   `groupBy` ('category' | 'paymentMethod'): Field to group the results by (required).
 *   **Responses:**
-    *   `200 OK`: Returns an array of summary objects, sorted by value descending. The `value` represents the total expense amount for the group, rounded to two decimal places.
+    *   `200 OK`: Returns an array of summary objects, sorted by `averageAmount` descending.
     ```json
     [
       {
-        "id": "category-uuid-or-payment-method-uuid",
-        "label": "Category Name or Payment Method Name",
-        "value": 150.75 // Total expense amount for this group (rounded)
+        "categoryId": "category-uuid",
+        "categoryName": "Category Name",
+        "totalAmount": 350.25, // Total expense amount for this category
+        "expenseCount": 5,     // Number of expenses in this category
+        "averageAmount": 70.05 // Average expense amount for this category (rounded)
       },
-      // ... more groups
+      // ... more categories
     ]
     ```
-    *   `400 Bad Request`: Invalid or missing query parameters (`startDate`, `endDate`, `groupBy`).
+    *   `400 Bad Request`: Invalid or missing query parameters (`startDate`, `endDate`).
     *   `401 Unauthorized`: Authentication failed.
     *   `500 Internal Server Error`: Database or other server error.
