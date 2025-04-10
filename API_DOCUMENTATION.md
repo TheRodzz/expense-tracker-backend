@@ -399,6 +399,50 @@ Endpoints for managing expenses. Require authentication.
     *   `404 Not Found`: Expense with the specified ID not found or doesn't belong to the user.
     *   `500 Internal Server Error`: Database or other server error.
 
+### 6. Get Expenses by Category
+
+*   **Endpoint:** `GET /api/expenses/category/{categoryId}`
+*   **Description:** Retrieves expenses for a specific category within a date range, belonging to the authenticated user.
+*   **Path Parameter:**
+    *   `categoryId` (UUID): The ID of the category to filter expenses by.
+*   **Query Parameters:** (Uses `GetExpensesByRelationQuerySchema`)
+    *   `startDate` (ISO 8601 string): Start date for the period (required).
+    *   `endDate` (ISO 8601 string): End date for the period (required).
+    *   `skip` (number, optional, default: 0): Number of records to skip for pagination.
+    *   `limit` (number, optional, default: 100): Maximum number of records to return (max 500).
+*   **Sorting:** Default sort is by `timestamp` descending.
+*   **Responses:**
+    *   `200 OK`: Returns an array of expense objects matching the criteria.
+    ```json
+    [ { /* Expense object */ }, ... ]
+    ```
+    *   `400 Bad Request`: Invalid `categoryId` format or invalid/missing query parameters (`startDate`, `endDate`).
+    *   `401 Unauthorized`: Authentication failed.
+    *   `404 Not Found`: Potentially if the specified category doesn't exist or belong to the user (depending on implementation checks).
+    *   `500 Internal Server Error`: Database or other server error.
+
+### 7. Get Expenses by Payment Method
+
+*   **Endpoint:** `GET /api/expenses/payment-method/{paymentMethodId}`
+*   **Description:** Retrieves expenses for a specific payment method within a date range, belonging to the authenticated user.
+*   **Path Parameter:**
+    *   `paymentMethodId` (UUID): The ID of the payment method to filter expenses by.
+*   **Query Parameters:** (Uses `GetExpensesByRelationQuerySchema`)
+    *   `startDate` (ISO 8601 string): Start date for the period (required).
+    *   `endDate` (ISO 8601 string): End date for the period (required).
+    *   `skip` (number, optional, default: 0): Number of records to skip for pagination.
+    *   `limit` (number, optional, default: 100): Maximum number of records to return (max 500).
+*   **Sorting:** Default sort is by `timestamp` descending.
+*   **Responses:**
+    *   `200 OK`: Returns an array of expense objects matching the criteria.
+    ```json
+    [ { /* Expense object */ }, ... ]
+    ```
+    *   `400 Bad Request`: Invalid `paymentMethodId` format or invalid/missing query parameters (`startDate`, `endDate`).
+    *   `401 Unauthorized`: Authentication failed.
+    *   `404 Not Found`: Potentially if the specified payment method doesn't exist or belong to the user (depending on implementation checks).
+    *   `500 Internal Server Error`: Database or other server error.
+
 ---
 
 ## Analytics Endpoints
@@ -414,13 +458,13 @@ Endpoints for retrieving summarized expense data. Require authentication.
     *   `endDate` (ISO 8601 string): End date for the summary period (required).
     *   `groupBy` ('category' | 'paymentMethod'): Field to group the results by (required).
 *   **Responses:**
-    *   `200 OK`: Returns an array of summary objects, sorted by value descending.
+    *   `200 OK`: Returns an array of summary objects, sorted by value descending. The `value` represents the total expense amount for the group, rounded to two decimal places.
     ```json
     [
       {
         "id": "category-uuid-or-payment-method-uuid",
         "label": "Category Name or Payment Method Name",
-        "value": 150.75 // Total expense amount for this group
+        "value": 150.75 // Total expense amount for this group (rounded)
       },
       // ... more groups
     ]
@@ -428,29 +472,3 @@ Endpoints for retrieving summarized expense data. Require authentication.
     *   `400 Bad Request`: Invalid or missing query parameters (`startDate`, `endDate`, `groupBy`).
     *   `401 Unauthorized`: Authentication failed.
     *   `500 Internal Server Error`: Database or other server error.
-    *   `501 Not Implemented`: The analytics calculation logic is not yet implemented.
-
-### 2. Get Average Category Spend
-
-*   **Endpoint:** `GET /api/analytics/average-spend`
-*   **Description:** Calculates the average expense amount per category within a specified date range.
-*   **Query Parameters:** (Uses `GetAverageCategorySpendQuerySchema`)
-    *   `startDate` (ISO 8601 string): Start date for the period (required).
-    *   `endDate` (ISO 8601 string): End date for the period (required).
-*   **Responses:**
-    *   `200 OK`: Returns an array of objects, each containing category details and the average spend, sorted by average amount descending.
-    ```json
-    [
-      {
-        "categoryId": "uuid",
-        "categoryName": "Category Name",
-        "totalAmount": 550.25,
-        "expenseCount": 5,
-        "averageAmount": 110.05
-      },
-      // ... more categories
-    ]
-    ```
-    *   `400 Bad Request`: Invalid or missing query parameters (`startDate`, `endDate`).
-    *   `401 Unauthorized`: Authentication failed.
-    *   `500 Internal Server Error`: Database or other server error. 

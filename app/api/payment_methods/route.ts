@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
         // RLS implicitly sets user_id based on the authenticated user
         const { data, error } = await supabase
             .from('payment_methods')
-            .insert({ name: payload.name /* user_id set by RLS/default value */ })
+            .insert({ name: payload.name , user_id: user.id })
             .select() // Return the created object
             .single(); // Expecting a single row back
 

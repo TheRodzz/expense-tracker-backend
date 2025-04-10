@@ -96,15 +96,17 @@ export async function PATCH(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: { id: string } }
 ) {
      try {
+        const { params } = context;
+        const { id } = await params; // Await the params promise
         const { supabase, user } = await createSupabaseServerClientWithAuthHeader(request);
         if (!supabase || !user) return handleAuthError();
 
-        const paramsValidation = IdParamSchema.safeParse(params);
+        const paramsValidation = IdParamSchema.safeParse({ id });
         if (!paramsValidation.success) throw paramsValidation.error;
-        const { id } = paramsValidation.data;
+        // const { id } = paramsValidation.data;
 
         // RLS restricts deletion
         const { error, count } = await supabase

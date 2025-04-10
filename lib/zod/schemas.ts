@@ -80,16 +80,21 @@ export const GetCategoriesQuerySchema = z.object({
 
 // Schema for GET /payment_methods query parameters
 export const GetPaymentMethodsQuerySchema = z.object({
-    skip: z.coerce.number().int().min(0).default(0).optional(),
-    limit: z.coerce.number().int().min(1).max(500).default(100).optional(),
+  skip: z
+    .preprocess((val) => val === '' ? undefined : Number(val), z.number().int().min(0))
+    .default(0),
+  limit: z
+    .preprocess((val) => val === '' ? undefined : Number(val), z.number().int().min(1).max(500))
+    .default(100),
 });
+
 
 // Schema for GET /analytics/summary query parameters
 export const GetAnalyticsSummaryQuerySchema = z.object({
     startDate: z.string().datetime({ message: "startDate is required and must be a valid ISO 8601 date" }),
     endDate: z.string().datetime({ message: "endDate is required and must be a valid ISO 8601 date" }),
-    groupBy: z.enum(['category', 'paymentMethod'], {
-        errorMap: () => ({ message: "groupBy must be one of: 'category', 'paymentMethod'" })
+    groupBy: z.enum(['category', 'payment_method'], {
+        errorMap: () => ({ message: "groupBy must be one of: 'category', 'payment_method'" })
     }),
 });
 
@@ -97,4 +102,34 @@ export const GetAnalyticsSummaryQuerySchema = z.object({
 export const GetAverageCategorySpendQuerySchema = z.object({
     startDate: z.string().datetime({ message: "startDate is required and must be a valid ISO 8601 date" }),
     endDate: z.string().datetime({ message: "endDate is required and must be a valid ISO 8601 date" }),
+});
+
+// Schema for common date range and pagination
+const DateRangePaginationSchema = z.object({
+  startDate: z.string().refine(
+    (val) => !isNaN(Date.parse(val)),
+    { message: "startDate is required and must be a valid ISO 8601 date" }
+  ),
+  endDate: z.string().refine(
+    (val) => !isNaN(Date.parse(val)),
+    { message: "endDate is required and must be a valid ISO 8601 date" }
+  ),
+  skip: z.preprocess((val) => val === '' ? undefined : Number(val), z.number().int().min(0)).default(0),
+  limit: z.preprocess((val) => val === '' ? undefined : Number(val), z.number().int().min(1).max(500)).default(100),
+}).refine(
+  (data) => new Date(data.startDate).getTime() <= new Date(data.endDate).getTime(),
+  {
+    message: 'startDate must be less than or equal to endDate',
+    path: ['startDate'],
+  }
+);
+
+
+
+// Schema for GET /expenses/category/{categoryId} and GET /expenses/payment-method/{paymentMethodId} query parameters
+export const GetExpensesByRelationQuerySchema = DateRangePaginationSchema;
+
+// Schema for path parameter validation
+export const PathUUIDSchema = z.object({
+    id: UUIDSchema, // Expecting the dynamic segment name, e.g., { categoryId: uuid } or { paymentMethodId: uuid }
 });
