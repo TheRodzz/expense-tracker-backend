@@ -4,13 +4,23 @@ import { z } from 'zod';
 const UUIDSchema = z.string().uuid({ message: "Invalid UUID format" });
 
 export const CategoryCreateSchema = z.object({
-    name: z.string().min(1, "Name is required").max(100, "Name cannot exceed 100 characters"),
+  name: z.string().min(1, "Name is required").max(100, "Name cannot exceed 100 characters"),
+  is_expense: z.boolean({
+    required_error: "Expense type is required",
+    invalid_type_error: "Expense type must be true or false"
+  }),
 });
+
 export type CategoryCreatePayload = z.infer<typeof CategoryCreateSchema>;
 
 export const PaymentMethodCreateSchema = z.object({
-    name: z.string().min(1, "Name is required").max(100, "Name cannot exceed 100 characters"),
+  name: z.string().min(1, "Name is required").max(100, "Name cannot exceed 100 characters"),
+  is_expense: z.boolean({
+    required_error: "Expense type is required",
+    invalid_type_error: "Expense type must be true or false",
+  }),
 });
+
 export type PaymentMethodCreatePayload = z.infer<typeof PaymentMethodCreateSchema>;
 
 export const ExpenseTypeEnum = z.enum(['Need', 'Want', 'Investment', 'Income']);
