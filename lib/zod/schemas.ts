@@ -13,7 +13,7 @@ export const PaymentMethodCreateSchema = z.object({
 });
 export type PaymentMethodCreatePayload = z.infer<typeof PaymentMethodCreateSchema>;
 
-export const ExpenseTypeEnum = z.enum(['Need', 'Want', 'Investment']);
+export const ExpenseTypeEnum = z.enum(['Need', 'Want', 'Investment', 'Income']);
 
 export const ExpenseCreateSchema = z.object({
     timestamp: z.string().datetime({ message: "Invalid ISO 8601 timestamp format" }),
