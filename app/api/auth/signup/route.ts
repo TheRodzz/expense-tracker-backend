@@ -34,8 +34,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       },
       { status: 201 }
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Unexpected error during signup:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Check if err is an instance of Error before accessing message
+    const errorMessage = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

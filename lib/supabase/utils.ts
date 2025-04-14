@@ -6,7 +6,7 @@ import { PostgrestError } from '@supabase/supabase-js';
 // Consistent error response format
 interface ErrorResponse {
     error: string;
-    details?: any;
+    details?: unknown;
 }
 
 export function handleError(error: unknown): NextResponse<ErrorResponse> {

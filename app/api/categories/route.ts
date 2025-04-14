@@ -1,5 +1,5 @@
 // app/api/categories/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createSupabaseServerClientWithAuthHeader } from '@/lib/supabase/server'; // Adjust path
 import { CategoryCreateSchema, GetCategoriesQuerySchema } from '@/lib/zod/schemas'; // Adjust path
 import { handleError, handleSuccess, handleAuthError } from '@/lib/supabase/utils'; // Adjust path

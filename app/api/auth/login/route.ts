@@ -30,9 +30,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({ token: accessToken }, { status: 200 });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Unexpected error during login:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const errorMessage = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 

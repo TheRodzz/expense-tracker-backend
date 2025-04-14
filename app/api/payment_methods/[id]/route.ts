@@ -1,7 +1,7 @@
 // app/api/payment_methods/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClientWithAuthHeader } from '@/lib/supabase/server';
-import { PaymentMethodCreatePayload, PaymentMethodCreateSchema } from '@/lib/zod/schemas';
+import { PaymentMethodCreateSchema } from '@/lib/zod/schemas';
 import { handleError, handleSuccess, handleAuthError } from '@/lib/supabase/utils';
 import { z } from 'zod';
 

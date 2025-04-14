@@ -12,6 +12,12 @@ interface AverageSpendResult {
     averageAmount: number;
 }
 
+// Define the shape of the expense data returned by the specific query
+interface ExpenseWithCategory {
+    amount: number;
+    categories: { id: string; name: string } | null;
+}
+
 export async function GET(request: NextRequest) {
     try {
         const { supabase, user } = await createSupabaseServerClientWithAuthHeader(request);
@@ -43,8 +49,8 @@ export async function GET(request: NextRequest) {
         }
 
         // Aggregate total amount and count per category
-        const summary = expenses.reduce<Record<string, { total: number; count: number; name: string }>>((acc, expense) => {
-            const categoryData = (expense as any).categories as { id: string; name: string } | null;
+        const summary = expenses.reduce<Record<string, { total: number; count: number; name: string }>>((acc, expense: ExpenseWithCategory) => {
+            const categoryData = expense.categories;
 
             if (categoryData) {
                 const { id, name } = categoryData;
