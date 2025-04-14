@@ -15,7 +15,7 @@ interface AverageSpendResult {
 // Define the shape of the expense data returned by the specific query
 interface ExpenseWithCategory {
     amount: number;
-    categories: { id: string; name: string } | null;
+    categories: { id: string; name: string }[] | null;
 }
 
 export async function GET(request: NextRequest) {
@@ -50,7 +50,8 @@ export async function GET(request: NextRequest) {
 
         // Aggregate total amount and count per category
         const summary = expenses.reduce<Record<string, { total: number; count: number; name: string }>>((acc, expense: ExpenseWithCategory) => {
-            const categoryData = expense.categories;
+            // Access the first category if the array exists and is not empty
+            const categoryData = expense.categories && expense.categories.length > 0 ? expense.categories[0] : null;
 
             if (categoryData) {
                 const { id, name } = categoryData;
