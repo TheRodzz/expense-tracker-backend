@@ -10,7 +10,7 @@ const IdParamSchema = z.object({ id: z.string().uuid() });
 
 export async function PATCH(
     request: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         const { params } = context;
@@ -32,22 +32,22 @@ export async function PATCH(
         // RLS restricts update to the user's own payment_methods
         const { data, error } = await supabase
             .from('payment_methods')
-            .update({ name: payload.name, updated_at: new Date().toISOString() })
+            .update({ name: payload.name, is_expense: payload.is_expense, updated_at: new Date().toISOString() })
             .eq('id', id)
             // .eq('user_id', user.id) // RLS makes this redundant but explicit check is fine too
             .select()
             .single();
 
         if (error) {
-             // Handle specific case where RLS prevents update or ID doesn't exist
+            // Handle specific case where RLS prevents update or ID doesn't exist
             if (error.code === 'PGRST116' || !data) {
-                 return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+                return NextResponse.json({ error: 'Not Found' }, { status: 404 });
             }
-             throw error; // Handle other errors (like unique constraint violation - 409)
+            throw error; // Handle other errors (like unique constraint violation - 409)
         }
-         if (!data) { // Double check if update returned null data despite no error
-             return NextResponse.json({ error: 'Not Found' }, { status: 404 });
-         }
+        if (!data) { // Double check if update returned null data despite no error
+            return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+        }
 
 
         return handleSuccess(data);
@@ -59,7 +59,7 @@ export async function PATCH(
 
 export async function DELETE(
     request: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         const { params } = context;
@@ -75,7 +75,7 @@ export async function DELETE(
             .from('payment_methods')
             .delete({ count: 'exact' }) // Request count of deleted rows
             .eq('id', id);
-            // .eq('user_id', user.id); // RLS makes this redundant
+        // .eq('user_id', user.id); // RLS makes this redundant
 
         if (error) {
             // Let handleError manage specific db errors (like 409 conflict if category is in use)
@@ -91,7 +91,7 @@ export async function DELETE(
         return handleSuccess(null, 204); // 204 No Content
 
     } catch (error) {
-         // handleError will catch PostgrestError (e.g., 409 foreign key violation)
+        // handleError will catch PostgrestError (e.g., 409 foreign key violation)
         return handleError(error);
     }
 }

@@ -9,7 +9,7 @@ const IdParamSchema = z.object({ id: z.string().uuid() });
 
 export async function GET(
     request: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         const { params } = context;
@@ -45,7 +45,7 @@ export async function GET(
 
 export async function PATCH(
     request: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
      try {
         const { params } = context;
@@ -96,7 +96,7 @@ export async function PATCH(
 
 export async function DELETE(
     request: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
      try {
         const { params } = context;

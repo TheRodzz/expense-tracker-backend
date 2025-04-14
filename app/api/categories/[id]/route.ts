@@ -10,7 +10,7 @@ const IdParamSchema = z.object({ id: z.string().uuid() });
 
 export async function PATCH(
     request: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         const { params } = context;
@@ -31,7 +31,7 @@ export async function PATCH(
         // RLS restricts update to the user's own category
         const { data, error } = await supabase
             .from('categories')
-            .update({ name: payload.name, updated_at: new Date().toISOString() })
+            .update({ name: payload.name, is_expense: payload.is_expense, updated_at: new Date().toISOString() })
             .eq('id', id)
             // .eq('user_id', user.id) // RLS makes this redundant but explicit check is fine too
             .select()
@@ -58,7 +58,7 @@ export async function PATCH(
 
 export async function DELETE(
     request: NextRequest,
-    context: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         const { params } = context;
