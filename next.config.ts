@@ -10,8 +10,8 @@ const nextConfig = {
         source: "/api/:path*", // Adjust if your API routes have a different base path
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
-          // Allow any origin (Use with caution, especially in production)
-          { key: "Access-Control-Allow-Origin", value: "*" }, // Changed from specific origin to wildcard
+          // Allow requests from the specific Vercel frontend URL
+          { key: "Access-Control-Allow-Origin", value: "https://expense-tracker-frontend-theta-one.vercel.app" }, 
           // Allowed methods for CORS preflight
           { key: "Access-Control-Allow-Methods", value: "GET,DELETE,PATCH,POST,PUT,OPTIONS" },
           // Allowed headers for CORS preflight
