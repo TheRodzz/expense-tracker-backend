@@ -65,8 +65,7 @@ function isPostgrestError(error: unknown): error is PostgrestError {
 
 export function handleSuccess<T>(data: T | null, status: number = 200): NextResponse<T> | NextResponse<null> {
     if (status === 204) {
-        return new NextResponse(null, { status: 204 });
-    }
+        return new NextResponse<null>(null, { status: 204 });    }
     return NextResponse.json(data as T, { status });
 }
 

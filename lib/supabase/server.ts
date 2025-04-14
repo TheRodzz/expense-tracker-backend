@@ -1,29 +1,90 @@
 // lib/supabase/server.ts
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import { NextRequest } from 'next/server';
+// import { cookies } from 'next/headers';
+// import { NextRequest } from 'next/server';
 
 // Option 1: Create client based on cookies (typical for server components/actions)
-export function createSupabaseServerClient() {
-    const cookieStore = cookies();
-    return createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-            cookies: {
-                get(name: string) {
-                    return cookieStore.get(name)?.value;
-                },
-                set(name: string, value: string, options: CookieOptions) {
-                    cookieStore.set({ name, value, ...options });
-                },
-                remove(name: string, options: CookieOptions) {
-                    cookieStore.set({ name, value: '', ...options });
-                },
-            },
-        }
-    );
+// export function createSupabaseServerClient() {
+//     const cookieStore = cookies();
+//     return createServerClient(
+//         process.env.NEXT_PUBLIC_SUPABASE_URL!,
+//         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+//         {
+//             cookies: {
+//                 get(name: string) {
+//                     return cookieStore.get(name)?.value;
+//                 },
+//                 set(name: string, value: string, options: CookieOptions) {
+//                     try {
+//                         cookieStore.set({ name, value, ...options });
+//                     } catch (error) {
+//                         // The `set` method was called from a Server Component.
+//                         // This can be ignored if you have middleware refreshing sessions.
+//                         console.log(error);
+//                         // error;
+//                         console.warn(`Supabase SSR: Failed to set cookie '${name}' from Server Component. Ignoring.`);
+//                     }
+//                 },
+//                 remove(name: string, options: CookieOptions) {
+//                     try {
+//                         // Use set with empty value for removal as per Supabase docs
+//                         cookieStore.set({ name, value: '', ...options });
+//                     } catch (error) {
+//                         // The `delete/remove` method was called from a Server Component.
+//                         // This can be ignored if you have middleware refreshing sessions.
+//                         console.log(error);
+//                         // error;
+//                         console.warn(`Supabase SSR: Failed to remove cookie '${name}' from Server Component. Ignoring.`);
+//                     }
+//                 },
+//             },
+//         }
+//     );
+// }
+// import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { NextRequest, NextResponse } from 'next/server';
+export function createSupabaseServerClient(req: NextRequest, res: NextResponse) {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          // Correct: Return the 'value' property of the cookie, or undefined if not found
+          return req.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          // Set the cookie on the response object
+          res.cookies.set(name, value, options);
+        },
+        remove(name: string, options: CookieOptions) {
+          // Remove the cookie on the response object by setting an expired cookie
+          res.cookies.set(name, '', { ...options, maxAge: 0 });
+        },
+      },
+    }
+  );
 }
+
+// export function createSupabaseServerClient(req: NextRequest, res: NextResponse) {
+//   return createServerClient(
+//     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+//     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+//     {
+//       cookies: {
+//         get(name: string) {
+//           return req.cookies.get(name);
+//         },
+//         set(name: string, value: string, options: CookieOptions) {
+//           res.cookies.set(name, value, options);
+//         },
+//         remove(name: string, options: CookieOptions) {
+//           res.cookies.set(name, '', { ...options, maxAge: 0 });
+//         },
+//       },
+//     }
+//   );
+// }
 
 // Option 2: Create client based on Authorization header (for stateless API routes)
 // export async function createSupabaseServerClientWithAuthHeader(req: NextRequest) {
