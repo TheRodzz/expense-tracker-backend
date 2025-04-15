@@ -28,7 +28,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const accessToken = data.session.access_token;
 
-    return NextResponse.json({ token: accessToken }, { status: 200 });
+    // Set the JWT as an HTTP-only, Secure cookie
+    const response = NextResponse.json({ success: true }, { status: 200 });
+    response.headers.set(
+      'Set-Cookie',
+      `auth_token=${accessToken}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800` // 7 days
+    );
+    return response;
 
   } catch (err: unknown) {
     console.error('Unexpected error during login:', err);

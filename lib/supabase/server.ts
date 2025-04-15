@@ -3,8 +3,15 @@ import { createServerClient } from '@supabase/ssr';
 import { NextRequest } from 'next/server';
 
 export async function createSupabaseServerClientWithAuthHeader(req: NextRequest) {
-    const authHeader = req.headers.get('Authorization');
-    const token = authHeader?.split('Bearer ')[1];
+    // Read JWT from 'auth_token' cookie
+    const cookieHeader = req.headers.get('cookie');
+    let token: string | undefined = undefined;
+    if (cookieHeader) {
+      const match = cookieHeader.match(/auth_token=([^;]+)/);
+      if (match) {
+        token = match[1];
+      }
+    }
   
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,11 +32,11 @@ export async function createSupabaseServerClientWithAuthHeader(req: NextRequest)
     if (token) {
       const { data: { user }, error } = await supabase.auth.getUser(token);
       if (error || !user) {
-        console.error("Auth Header Error:", error);
+        console.error("Cookie Auth Error:", error);
         return { supabase: null, user: null, error: error || new Error("Invalid token") };
       }
       return { supabase, user, error: null };
     } else {
-      return { supabase: null, user: null, error: new Error("Missing Authorization header") };
+      return { supabase: null, user: null, error: new Error("Missing auth_token cookie") };
     }
   }

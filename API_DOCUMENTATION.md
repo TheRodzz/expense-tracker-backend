@@ -4,11 +4,9 @@ This document provides details about the available API endpoints for the Expense
 
 ## Authentication
 
-All API endpoints under `/api/`, except for `/api/auth/*`, require authentication. Requests must include a valid Supabase JWT in the `Authorization` header:
+All API endpoints under `/api/`, except for `/api/auth/*`, require authentication. Authentication is handled via an HTTP-only cookie named `auth_token` (set automatically on login/signup). You do **not** need to send the JWT manually in headers or request bodies.
 
-```
-Authorization: Bearer <YOUR_SUPABASE_JWT>
-```
+The backend reads the JWT from the `auth_token` cookie on each request. Ensure your client includes cookies in API requests (most browsers do this by default).
 
 The middleware (`middleware.ts`) handles token validation. Unauthorized requests will receive a `401 Unauthorized` response.
 
@@ -34,7 +32,7 @@ These endpoints handle user authentication. They do **not** require the `Authori
     }
     ```
 *   **Responses:**
-    *   `201 Created`: Signup successful. Response body includes a message and user information (note: email confirmation might be required based on Supabase settings).
+    *   `201 Created`: Signup successful. If signup does not require email confirmation, the response body includes a message and user information, and an HTTP-only `auth_token` cookie is set for authentication. If email confirmation is required, the response prompts the user to check their email, and no cookie is set until confirmation.
     ```json
     {
       "message": "Signup successful. Check your email for confirmation (if enabled).",
@@ -47,7 +45,7 @@ These endpoints handle user authentication. They do **not** require the `Authori
 ### 2. Log In
 
 *   **Endpoint:** `POST /api/auth/login`
-*   **Description:** Authenticates a user and returns an access token (JWT).
+*   **Description:** Authenticates a user. On success, sets an HTTP-only `auth_token` cookie containing a JWT for authentication.
 *   **Request Body:**
     ```json
     {
@@ -56,15 +54,17 @@ These endpoints handle user authentication. They do **not** require the `Authori
     }
     ```
 *   **Responses:**
-    *   `200 OK`: Login successful. Response body contains the access token.
-    ```json
-    {
-      "token": "your_supabase_jwt"
-    }
-    ```
+    *   `200 OK`: Login successful. Response body: `{ "success": true }`. The JWT is set as an HTTP-only cookie (`auth_token`).
     *   `400 Bad Request`: Missing email/password.
     *   `401 Unauthorized`: Invalid credentials or login failed. Response body includes an error message.
     *   `500 Internal Server Error`: Unexpected server error.
+
+### 3. Log Out
+
+*   **Endpoint:** `POST /api/auth/logout`
+*   **Description:** Logs out the user by clearing the `auth_token` cookie.
+*   **Responses:**
+    *   `200 OK`: Logout successful. The authentication cookie is cleared.
 
 ---
 

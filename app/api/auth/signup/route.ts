@@ -26,7 +26,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: error?.message || 'Signup failed' }, { status: 400 });
     }
 
-    // Return the user's info (not session yet — email confirmation may be required depending on Supabase settings)
+    // If session is returned (signup does not require email confirmation), set cookie
+    if (data.session && data.session.access_token) {
+      const accessToken = data.session.access_token;
+      const response = NextResponse.json({
+        message: 'Signup successful.',
+        user: data.user,
+      }, { status: 201 });
+      response.headers.set(
+        'Set-Cookie',
+        `auth_token=${accessToken}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`
+      );
+      return response;
+    }
+    // Otherwise, just return user info and prompt for email confirmation
     return NextResponse.json(
       {
         message: 'Signup successful. Check your email for confirmation (if enabled).',
