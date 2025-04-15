@@ -128,16 +128,3 @@ export async function DELETE(
         return handleError(error);
     }
 }
-
-// export async function OPTIONS() {
-//     return new NextResponse(null, {
-//       status: 204,
-//       headers: {
-//         "Access-Control-Allow-Credentials": "true",
-//         "Access-Control-Allow-Origin": "https://expense-tracker-frontend-theta-one.vercel.app",
-//         "Access-Control-Allow-Methods": "GET,DELETE,PATCH,POST,PUT,OPTIONS",
-//         "Access-Control-Allow-Headers":
-//           "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization",
-//       },
-//     });
-//   }

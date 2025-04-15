@@ -10,12 +10,13 @@ interface AverageSpendResult {
     totalAmount: number;
     expenseCount: number;
     averageAmount: number;
+    is_expense: boolean;
 }
 
-// Define the shape of the expense data returned by the specific query
-interface ExpenseWithCategory {
+// Define the shape of the expense data fetched from the DB
+interface ExpenseData {
     amount: number;
-    categories: { id: string; name: string }[] | null;
+    category_id: string | null; // Only category_id is directly available
 }
 
 export async function GET(request: NextRequest) {
@@ -32,48 +33,72 @@ export async function GET(request: NextRequest) {
         }
         const { startDate, endDate } = validationResult.data;
 
-        // Fetch expenses with category data within the date range
+        // 1. Fetch expenses with category_id within the date range
         const { data: expenses, error: fetchError } = await supabase
             .from('expenses')
             .select(`
                 amount,
-                categories (id, name)
+                category_id
             `)
+            .eq('user_id', user.id) // Ensure we only get user's expenses
             .gte('timestamp', startDate)
             .lte('timestamp', endDate);
 
         if (fetchError) throw fetchError;
 
-        if (!expenses) {
+        if (!expenses || expenses.length === 0) {
             return handleSuccess<AverageSpendResult[]>([]);
         }
 
-        // Aggregate total amount and count per category
-        const summary = expenses.reduce<Record<string, { total: number; count: number; name: string }>>((acc, expense: ExpenseWithCategory) => {
-            // Access the first category if the array exists and is not empty
-            const categoryData = expense.categories && expense.categories.length > 0 ? expense.categories[0] : null;
+        // 2. Fetch all categories for the user
+        const { data: categories, error: categoryError } = await supabase
+            .from('categories')
+            .select('id, name, is_expense')
+            .eq('user_id', user.id);
 
-            if (categoryData) {
-                const { id, name } = categoryData;
-                if (!acc[id]) {
-                    acc[id] = { total: 0, count: 0, name: name };
-                }
-                acc[id].total += expense.amount;
-                acc[id].count += 1;
+        if (categoryError) throw categoryError;
+
+        // 3. Create a map for quick category lookup (name and is_expense flag)
+        const categoryMap = new Map<string, { name: string; is_expense: boolean }>();
+        categories?.forEach(cat => {
+            if (cat.id && cat.name && typeof cat.is_expense === 'boolean') {
+                categoryMap.set(cat.id, { name: cat.name, is_expense: cat.is_expense });
             }
-             // Optionally log/handle expenses without a category if that's possible in your data
+        });
+
+        // 4. Aggregate total amount and count per category (including non-expense categories)
+        const summary = expenses.reduce<Record<string, { total: number; count: number; name: string }>>((acc, expense: ExpenseData) => {
+            const categoryId = expense.category_id;
+            const categoryInfo = categoryId ? categoryMap.get(categoryId) : null;
+
+            // Check if categoryId exists and is in the map
+            if (categoryId && categoryInfo) {
+                const categoryName = categoryInfo.name;
+
+                if (!acc[categoryId]) {
+                    acc[categoryId] = { total: 0, count: 0, name: categoryName };
+                }
+                // Amount is already a number
+                acc[categoryId].total += expense.amount;
+                acc[categoryId].count += 1;
+            }
+            // Optionally log/handle expenses with null or unknown category_id
 
             return acc;
         }, {});
 
-        // Calculate average and format results
-        const resultsArray: AverageSpendResult[] = Object.entries(summary).map(([categoryId, data]) => ({
-            categoryId: categoryId,
-            categoryName: data.name,
-            totalAmount: parseFloat(data.total.toFixed(2)),
-            expenseCount: data.count,
-            averageAmount: parseFloat((data.total / data.count).toFixed(2)),
-        }));
+        // 5. Calculate average and format results
+        const resultsArray: AverageSpendResult[] = Object.entries(summary).map(([categoryId, data]) => {
+            const categoryInfo = categoryMap.get(categoryId);
+            return {
+                categoryId: categoryId,
+                categoryName: data.name,
+                totalAmount: parseFloat(data.total.toFixed(2)),
+                expenseCount: data.count,
+                averageAmount: parseFloat((data.total / data.count).toFixed(2)),
+                is_expense: categoryInfo ? categoryInfo.is_expense : false,
+            };
+        });
 
         // Sort results by average amount descending
         resultsArray.sort((a, b) => b.averageAmount - a.averageAmount);
