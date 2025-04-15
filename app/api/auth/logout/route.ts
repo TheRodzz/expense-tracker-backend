@@ -5,7 +5,7 @@ export async function POST(): Promise<NextResponse> {
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Set-Cookie': `auth_token=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0` // Expire cookie
+      'Set-Cookie': `auth_token=; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=0` // Expire cookie
     }
   });
 }

@@ -35,7 +35,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       }, { status: 201 });
       response.headers.set(
         'Set-Cookie',
-        `auth_token=${accessToken}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`
+        `auth_token=${accessToken}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800`
       );
       return response;
     }

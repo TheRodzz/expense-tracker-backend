@@ -32,7 +32,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const response = NextResponse.json({ success: true }, { status: 200 });
     response.headers.set(
       'Set-Cookie',
-      `auth_token=${accessToken}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800` // 7 days
+      `auth_token=${accessToken}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800` // 7 days
     );
     return response;
 
