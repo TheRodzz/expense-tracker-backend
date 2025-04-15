@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
         // Optional: Verify category_id and payment_method_id belong to the user *before* insert
         // This adds extra checks but prevents confusing FK errors if RLS isn't perfect on related tables.
-        const { count: catCount, error: catErr } = await supabase.from('categories').select('id', { count: 'exact'}).eq('id', payload.category_id); //.eq('user_id', user.id) // RLS should handle user check
+        const { count: catCount, error: catErr } = await supabase.from('categories').select('id', { count: 'exact'}).eq('id', payload.category_id).eq('user_id', user.id) // RLS should handle user check
         if (catErr || catCount === 0) return NextResponse.json({ error: "Category not found for this user" }, { status: 404 });
         const { count: pmCount, error: pmErr } = await supabase.from('payment_methods').select('id', { count: 'exact'}).eq('id', payload.payment_method_id);
         if (pmErr || pmCount === 0) return NextResponse.json({ error: "Payment method not found for this user" }, { status: 404 });

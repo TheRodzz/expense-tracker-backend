@@ -34,7 +34,7 @@ export async function PATCH(
             .from('payment_methods')
             .update({ name: payload.name, is_expense: payload.is_expense, updated_at: new Date().toISOString() })
             .eq('id', id)
-            // .eq('user_id', user.id) // RLS makes this redundant but explicit check is fine too
+            .eq('user_id', user.id) // RLS makes this redundant but explicit check is fine too
             .select()
             .single();
 
@@ -74,8 +74,8 @@ export async function DELETE(
         const { error, count } = await supabase
             .from('payment_methods')
             .delete({ count: 'exact' }) // Request count of deleted rows
-            .eq('id', id);
-        // .eq('user_id', user.id); // RLS makes this redundant
+            .eq('id', id)
+        .eq('user_id', user.id); // RLS makes this redundant
 
         if (error) {
             // Let handleError manage specific db errors (like 409 conflict if category is in use)

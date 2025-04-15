@@ -26,7 +26,7 @@ export async function GET(
             .from('expenses')
             .select('*')
             .eq('id', id)
-            // .eq('user_id', user.id) // RLS handles this
+            .eq('user_id', user.id) // RLS handles this
             .maybeSingle(); // Use maybeSingle to handle null case gracefully
 
         if (error) throw error;
@@ -67,7 +67,7 @@ export async function PATCH(
             .from('expenses')
             .update({ ...payload, updated_at: new Date().toISOString() })
             .eq('id', id)
-            // .eq('user_id', user.id) // RLS handles this
+            .eq('user_id', user.id) // RLS handles this
             .select()
             .single(); // Expect one row updated
 
@@ -112,8 +112,8 @@ export async function DELETE(
         const { error, count } = await supabase
             .from('expenses')
             .delete({ count: 'exact' }) // Request count
-            .eq('id', id);
-            // .eq('user_id', user.id); // RLS handles this
+            .eq('id', id)
+            .eq('user_id', user.id); // RLS handles this
 
         if (error) throw error; // Let handleError handle db errors
 
