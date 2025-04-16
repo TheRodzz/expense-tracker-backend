@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { generateCsrfToken, setCsrfCookie } from '@/lib/csrf';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -29,14 +30,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // If session is returned (signup does not require email confirmation), set cookie
     if (data.session && data.session.access_token) {
       const accessToken = data.session.access_token;
+      const csrfToken = generateCsrfToken();
       const response = NextResponse.json({
         message: 'Signup successful.',
         user: data.user,
+        csrfToken,
       }, { status: 201 });
       response.headers.set(
         'Set-Cookie',
         `auth_token=${accessToken}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800`
       );
+      setCsrfCookie(response, csrfToken);
       return response;
     }
     // Otherwise, just return user info and prompt for email confirmation

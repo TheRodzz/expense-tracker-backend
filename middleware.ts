@@ -1,6 +1,7 @@
 // middleware.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseServerClientWithAuthHeader } from './lib/supabase/server'; // Adjust path if needed
+import { validateCsrf, CSRF_HEADER_NAME } from './lib/csrf';
 
 export async function middleware(request: NextRequest) {
     
@@ -17,9 +18,20 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    // Skip auth for auth routes
+    // Skip auth and CSRF for auth routes
     if (request.nextUrl.pathname.startsWith('/api/auth')) {
         return NextResponse.next();
+    }
+
+    // --- CSRF Protection for mutation requests ---
+    const mutationMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
+    if (mutationMethods.includes(request.method)) {
+        if (!validateCsrf(request)) {
+            return new NextResponse(
+                JSON.stringify({ error: 'Invalid or missing CSRF token' }),
+                { status: 403, headers: { 'Content-Type': 'application/json' } }
+            );
+        }
     }
 
     // --- Proceed with Authentication for non-OPTIONS requests ---

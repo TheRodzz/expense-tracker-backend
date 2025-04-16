@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
         if (!supabase || !user) return handleAuthError();
 
         const json = await request.json();
-        console.log(json);
         const payload = ExpenseCreateSchema.parse(json);
 
         // Optional: Verify category_id and payment_method_id belong to the user *before* insert

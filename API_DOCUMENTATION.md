@@ -10,6 +10,31 @@ The backend reads the JWT from the `auth_token` cookie on each request. Ensure y
 
 The middleware (`middleware.ts`) handles token validation. Unauthorized requests will receive a `401 Unauthorized` response.
 
+## CSRF Protection
+
+All state-changing API requests (`POST`, `PUT`, `PATCH`, `DELETE`) to `/api/*` (except `/api/auth/*`) require a valid CSRF token. This protects against cross-site request forgery attacks when the frontend and backend are hosted on different domains.
+
+- On successful login or signup, the backend sets a `csrf_token` cookie (not HTTP-only, `SameSite=None; Secure`).
+- The frontend **must** read the `csrf_token` cookie and include its value in the `X-CSRF-Token` header for all mutation requests.
+- If the CSRF token is missing or invalid, the API will return a `403 Forbidden` error.
+- The CSRF token is not required for `GET`, `OPTIONS`, or `/api/auth/*` endpoints.
+
+**Example (frontend, using fetch):**
+```js
+const csrfToken = getCookie('csrf_token'); // Use your preferred cookie utility
+fetch('/api/categories', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CSRF-Token': csrfToken,
+  },
+  credentials: 'include', // Important: send cookies
+  body: JSON.stringify({ name: 'New Category' })
+});
+```
+
+---
+
 ## Base URL
 
 All API routes are relative to the application's base URL.
@@ -100,6 +125,7 @@ Endpoints for managing expense categories. Require authentication.
 
 *   **Endpoint:** `POST /api/categories`
 *   **Description:** Creates a new category for the authenticated user.
+*   **CSRF:** Requires the `X-CSRF-Token` header. See [CSRF Protection](#csrf-protection).
 *   **Request Body:** (Uses `CategoryCreateSchema`)
     ```json
     {
@@ -198,6 +224,7 @@ Endpoints for managing payment methods. Require authentication.
 
 *   **Endpoint:** `POST /api/payment_methods`
 *   **Description:** Creates a new payment method for the authenticated user.
+*   **CSRF:** Requires the `X-CSRF-Token` header. See [CSRF Protection](#csrf-protection).
 *   **Request Body:** (Uses `PaymentMethodCreateSchema`)
     ```json
     {
@@ -308,6 +335,7 @@ Endpoints for managing expenses. Require authentication.
 
 *   **Endpoint:** `POST /api/expenses`
 *   **Description:** Creates a new expense record for the authenticated user.
+*   **CSRF:** Requires the `X-CSRF-Token` header. See [CSRF Protection](#csrf-protection).
 *   **Request Body:** (Uses `ExpenseCreateSchema`)
     ```json
     {

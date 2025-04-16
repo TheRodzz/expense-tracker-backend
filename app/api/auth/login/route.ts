@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { generateCsrfToken, setCsrfCookie } from '@/lib/csrf';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -29,11 +30,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const accessToken = data.session.access_token;
 
     // Set the JWT as an HTTP-only, Secure cookie
-    const response = NextResponse.json({ success: true }, { status: 200 });
-    response.headers.set(
-      'Set-Cookie',
-      `auth_token=${accessToken}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800` // 7 days
-    );
+    const csrfToken = generateCsrfToken();
+    const response = NextResponse.json({ success: true, csrfToken }, { status: 200 });
+    response.cookies.set('auth_token', accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+    setCsrfCookie(response, csrfToken);
     return response;
 
   } catch (err: unknown) {

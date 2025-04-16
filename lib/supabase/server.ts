@@ -3,15 +3,8 @@ import { createServerClient } from '@supabase/ssr';
 import { NextRequest } from 'next/server';
 
 export async function createSupabaseServerClientWithAuthHeader(req: NextRequest) {
-    // Read JWT from 'auth_token' cookie
-    const cookieHeader = req.headers.get('cookie');
-    let token: string | undefined = undefined;
-    if (cookieHeader) {
-      const match = cookieHeader.match(/auth_token=([^;]+)/);
-      if (match) {
-        token = match[1];
-      }
-    }
+    // Read JWT from 'auth_token' cookie (Edge-compatible)
+    const token = req.cookies.get('auth_token')?.value;
   
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
